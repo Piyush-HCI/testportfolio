@@ -105,11 +105,11 @@
         <div class="max-w-7xl mx-auto px-4 h-16 relative flex items-center justify-center">
             
             <ul class="hidden md:flex items-center gap-1 list-none p-0 m-0">
-                <li><button onclick="switchView('home')" id="nav-btn-home" class="nav-link active w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center">Home</button></li>
+                <li><button onclick="switchView('home', true)" id="nav-btn-home" class="nav-link active w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center">Home</button></li>
                 
                 <li><a href="about.html" class="nav-link w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center">About Me</a></li>
                 
-                <li><button onclick="switchView('resume')" id="nav-btn-resume" class="nav-link w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center">Resume</button></li>
+                <li><button onclick="switchView('resume', true)" id="nav-btn-resume" class="nav-link w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center">Resume</button></li>
 
                 <li class="relative group">
                     <button class="nav-link w-32 justify-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 hover:text-white transition-all duration-200 flex items-center gap-1">
@@ -164,9 +164,9 @@
         </div>
 
         <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-b border-gray-700 absolute top-16 w-full p-4 flex flex-col gap-2 shadow-2xl">
-            <button onclick="switchView('home'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-4 py-3 rounded-xl bg-gray-700 text-white font-medium">Home</button>
+            <button onclick="switchView('home', true); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-4 py-3 rounded-xl bg-gray-700 text-white font-medium">Home</button>
             <a href="about.html" class="block px-4 py-3 rounded-xl hover:bg-gray-700 text-gray-300 transition-colors">About Me</a>
-            <button onclick="switchView('resume'); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-4 py-3 rounded-xl hover:bg-gray-700 text-gray-300 transition-colors">Resume</button>
+            <button onclick="switchView('resume', true); document.getElementById('mobile-menu').classList.add('hidden')" class="block w-full text-left px-4 py-3 rounded-xl hover:bg-gray-700 text-gray-300 transition-colors">Resume</button>
             <div class="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest mt-2">Work</div>
             <a href="/project-vr" class="block px-4 py-2 rounded-xl hover:bg-gray-700 text-gray-300 transition-colors pl-8">VR for Education</a>
             <a href="/project-flood" class="block px-4 py-2 rounded-xl hover:bg-gray-700 text-gray-300 transition-colors pl-8">Immersive Flood Readiness</a>
@@ -191,7 +191,7 @@
                     </div>
                     <div class="flex flex-col gap-3 mt-8 w-fit">
                         <a href="about.html" class="px-6 py-2 rounded-xl bg-gray-700/50 border border-gray-600 text-gray-200 hover:bg-gray-700 transition font-medium backdrop-blur-sm text-left">About Me</a>
-                        <button onclick="switchView('resume')" class="px-6 py-2 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition font-medium shadow-lg shadow-violet-900/20 flex items-center justify-between gap-4">
+                        <button onclick="switchView('resume', true)" class="px-6 py-2 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition font-medium shadow-lg shadow-violet-900/20 flex items-center justify-between gap-4">
                             Resume <span>↗</span>
                         </button>
                     </div>
@@ -411,8 +411,8 @@
     </footer>
 
     <script>
-        // --- VIEW SWITCHING LOGIC (SPA) ---
-        function switchView(viewName) {
+        // --- VIEW SWITCHING LOGIC (SPA) + URL UPDATING ---
+        function switchView(viewName, updateUrl = true) {
             const homeView = document.getElementById('view-home');
             const resumeView = document.getElementById('view-resume');
             const homeBtn = document.getElementById('nav-btn-home');
@@ -430,6 +430,10 @@
                 homeBtn.classList.remove('hover:bg-gray-800');
                 resumeBtn.classList.remove('active');
                 resumeBtn.classList.add('hover:bg-gray-800');
+
+                // Update URL
+                if (updateUrl) history.pushState({ view: 'home' }, '', '/');
+
             } else if (viewName === 'resume') {
                 homeView.classList.add('hidden');
                 resumeView.classList.remove('hidden');
@@ -439,8 +443,21 @@
                 resumeBtn.classList.remove('hover:bg-gray-800');
                 homeBtn.classList.remove('active');
                 homeBtn.classList.add('hover:bg-gray-800');
+
+                // Update URL
+                if (updateUrl) history.pushState({ view: 'resume' }, '', '/resume');
             }
         }
+
+        // --- HANDLE BACK BUTTON (POPSTATE) ---
+        window.onpopstate = function(event) {
+            if (event.state && event.state.view) {
+                switchView(event.state.view, false);
+            } else {
+                // Default to home if no state
+                switchView('home', false);
+            }
+        };
 
         // --- BLOG DATA & LOGIC ---
         const blogPosts = [
@@ -563,6 +580,13 @@
             renderBlogPosts();
             renderNavBlogList();
             initProjectLogic();
+
+            // Handle Initial URL Load
+            if (window.location.pathname === '/resume') {
+                switchView('resume', false);
+            } else {
+                history.replaceState({ view: 'home' }, '', '/');
+            }
         });
     </script>
 </body>
